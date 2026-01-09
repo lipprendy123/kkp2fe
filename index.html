@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PO System - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <!-- Login Page -->
+    <div id="loginPage" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-lg w-96">
+            <h2 class="text-2xl font-bold mb-6 text-center">Login Admin</h2>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Username</label>
+                    <input type="text" id="loginUsername" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 mb-2">Password</label>
+                    <input type="password" id="loginPassword" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600">Login</button>
+            </form>
+            <div id="loginError" class="mt-4 text-red-500 text-sm hidden"></div>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboardPage" class="hidden">
+        <!-- Navbar -->
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">PO System</h1>
+                <div class="flex items-center gap-4">
+                    <span id="adminName"></span>
+                    <button onclick="logout()" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Sidebar & Content -->
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="w-64 bg-white h-screen shadow-lg">
+                <div class="p-4">
+                    <button onclick="showPage('dashboard')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-dashboard mr-2"></i> Dashboard
+                    </button>
+                    <button onclick="showPage('pelanggan')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-users mr-2"></i> Data Pelanggan
+                    </button>
+                    <button onclick="showPage('barang')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-box mr-2"></i> Data Barang
+                    </button>
+                    <button onclick="showPage('po')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-file-invoice mr-2"></i> Purchase Order
+                    </button>
+                    <button onclick="showPage('so')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-shopping-cart mr-2"></i> Sales Order
+                    </button>
+                    <button onclick="showPage('nota')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-receipt mr-2"></i> Nota
+                    </button>
+                    <button onclick="showPage('laporan')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+                        <i class="fas fa-chart-bar mr-2"></i> Laporan
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="flex-1 p-6">
+                <!-- Dashboard Stats -->
+                <div id="dashboardContent" class="page-content">
+                    <h2 class="text-2xl font-bold mb-6">Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="text-gray-500 text-sm">Penjualan Hari Ini</div>
+                            <div class="text-2xl font-bold" id="statPenjualanHariIni">Rp 0</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="text-gray-500 text-sm">Transaksi Hari Ini</div>
+                            <div class="text-2xl font-bold" id="statTransaksiHariIni">0</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="text-gray-500 text-sm">Total Pelanggan</div>
+                            <div class="text-2xl font-bold" id="statTotalPelanggan">0</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <div class="text-gray-500 text-sm">Total Barang</div>
+                            <div class="text-2xl font-bold" id="statTotalBarang">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pelanggan Page -->
+                <div id="pelangganContent" class="page-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Data Pelanggan</h2>
+                        <button onclick="showAddPelangganModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            <i class="fas fa-plus mr-2"></i> Tambah Pelanggan
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-4">
+                            <input type="text" id="searchPelanggan" placeholder="Cari pelanggan..." class="w-full px-3 py-2 border rounded-lg" onkeyup="loadPelanggan()">
+                        </div>
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">No Pelanggan</th>
+                                    <th class="px-6 py-3 text-left">Nama</th>
+                                    <th class="px-6 py-3 text-left">Alamat</th>
+                                    <th class="px-6 py-3 text-left">Telp</th>
+                                    <th class="px-6 py-3 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pelangganTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Barang Page -->
+                <div id="barangContent" class="page-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Data Barang</h2>
+        <div class="flex gap-2">
+            <button onclick="showKategoriModal()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-tags mr-2"></i> Kelola Kategori
+            </button>
+            <button onclick="showAddBarangModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-plus mr-2"></i> Tambah Barang
+            </button>
+        </div>
+    </div>
+                    <div class="bg-white rounded-lg shadow">
+                        <div class="p-4">
+                            <input type="text" id="searchBarang" placeholder="Cari barang..." class="w-full px-3 py-2 border rounded-lg" onkeyup="loadBarang()">
+                        </div>
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">Kode</th>
+                                    <th class="px-6 py-3 text-left">Nama</th>
+                                    <th class="px-6 py-3 text-left">Kategori</th>
+                                    <th class="px-6 py-3 text-left">Harga</th>
+                                    <th class="px-6 py-3 text-left">Stok</th>
+                                    <th class="px-6 py-3 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="barangTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- PO Page -->
+                <div id="poContent" class="page-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Purchase Order</h2>
+                        <button onclick="showAddPOModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            <i class="fas fa-plus mr-2"></i> Buat PO
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">No PO</th>
+                                    <th class="px-6 py-3 text-left">Tanggal</th>
+                                    <th class="px-6 py-3 text-left">Pelanggan</th>
+                                    <th class="px-6 py-3 text-left">Total</th>
+                                    <th class="px-6 py-3 text-left">Status</th>
+                                    <th class="px-6 py-3 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="poTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SO Page -->
+                <div id="soContent" class="page-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Sales Order</h2>
+                        <button onclick="showAddSOModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            <i class="fas fa-plus mr-2"></i> Buat SO
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">No SO</th>
+                                    <th class="px-6 py-3 text-left">Tanggal</th>
+                                    <th class="px-6 py-3 text-left">No PO</th>
+                                    <th class="px-6 py-3 text-left">Pelanggan</th>
+                                    <th class="px-6 py-3 text-left">Status</th>
+                                    <th class="px-6 py-3 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="soTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Nota Page -->
+                <div id="notaContent" class="page-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold">Nota</h2>
+                        <button onclick="showAddNotaModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                            <i class="fas fa-plus mr-2"></i> Buat Nota
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-lg shadow">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left">No Nota</th>
+                                    <th class="px-6 py-3 text-left">Tanggal</th>
+                                    <th class="px-6 py-3 text-left">Pelanggan</th>
+                                    <th class="px-6 py-3 text-left">Total</th>
+                                    <th class="px-6 py-3 text-left">Sisa Bayar</th>
+                                    <th class="px-6 py-3 text-left">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notaTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Laporan Page -->
+                <div id="laporanContent" class="page-content hidden">
+                    <h2 class="text-2xl font-bold mb-6">Laporan</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-bold mb-4">Laporan Penjualan</h3>
+                            <button onclick="downloadLaporanPenjualan()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full">
+                                <i class="fas fa-download mr-2"></i> Download Laporan
+                            </button>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-bold mb-4">Barang Terlaris</h3>
+                            <div id="barangTerlarisTable"></div>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow">
+                            <h3 class="text-xl font-bold mb-4">Pelanggan Royal</h3>
+                            <div id="pelangganRoyalTable"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add Pelanggan -->
+    <div id="addPelangganModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h3 class="text-xl font-bold mb-4">Tambah Pelanggan</h3>
+            <form id="addPelangganForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Nama</label>
+                    <input type="text" id="nmplg" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Alamat</label>
+                    <textarea id="alamat" class="w-full px-3 py-2 border rounded-lg" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Telepon</label>
+                    <input type="text" id="telp" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Email</label>
+                    <input type="email" id="email" class="w-full px-3 py-2 border rounded-lg">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Simpan</button>
+                    <button type="button" onclick="closeModal('addPelangganModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Add Barang -->
+    <div id="addBarangModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white p-6 rounded-lg w-96">
+            <h3 class="text-xl font-bold mb-4">Tambah Barang</h3>
+            <form id="addBarangForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Nama Barang</label>
+                    <input type="text" id="nmbrg" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Kategori</label>
+                    <select id="kategoriSelect" class="w-full px-3 py-2 border rounded-lg" required></select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Harga</label>
+                    <input type="number" id="harga" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Stok</label>
+                    <input type="number" id="stok" class="w-full px-3 py-2 border rounded-lg" required>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Simpan</button>
+                    <button type="button" onclick="closeModal('addBarangModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Kategori -->
+<div id="kategoriModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-96">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Kelola Kategori</h3>
+            <button onclick="closeModal('kategoriModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <!-- Form Tambah Kategori -->
+        <form id="addKategoriForm" class="mb-4">
+            <div class="mb-3">
+                <label class="block text-gray-700 mb-2">Nama Kategori</label>
+                <input type="text" id="nmkategori" class="w-full px-3 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-3">
+                <label class="block text-gray-700 mb-2">Deskripsi</label>
+                <textarea id="deskripsi" class="w-full px-3 py-2 border rounded-lg"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-plus mr-2"></i> Tambah Kategori
+            </button>
+        </form>
+
+        <hr class="my-4">
+
+        <!-- List Kategori -->
+        <div>
+            <h4 class="font-bold mb-2">Daftar Kategori</h4>
+            <div id="kategoriList" class="max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Buat PO -->
+<div id="addPOModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-[600px] max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Buat Purchase Order</h3>
+            <button onclick="closeModal('addPOModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addPOForm">
+            <!-- Pilih Pelanggan -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Pelanggan</label>
+                <select id="poPelangganSelect" class="w-full px-3 py-2 border rounded-lg" required>
+                    <option value="">Pilih Pelanggan</option>
+                </select>
+            </div>
+
+            <!-- Items -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Barang yang Dipesan</label>
+                <div id="poItemsContainer">
+                    <div class="po-item flex gap-2 mb-2">
+                        <select class="flex-1 px-3 py-2 border rounded-lg po-barang-select" required>
+                            <option value="">Pilih Barang</option>
+                        </select>
+                        <input type="number" placeholder="Qty" class="w-24 px-3 py-2 border rounded-lg po-qty" min="1" required>
+                        <button type="button" onclick="removePOItem(this)" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" onclick="addPOItem()" class="bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600 text-sm">
+                    <i class="fas fa-plus mr-1"></i> Tambah Barang
+                </button>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Buat PO</button>
+                <button type="button" onclick="closeModal('addPOModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Buat SO -->
+<div id="addSOModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-[600px] max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Buat Sales Order</h3>
+            <button onclick="closeModal('addSOModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addSOForm">
+            <!-- Pilih PO -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Purchase Order</label>
+                <select id="soPOSelect" class="w-full px-3 py-2 border rounded-lg" required onchange="loadPODetails()">
+                    <option value="">Pilih PO</option>
+                </select>
+            </div>
+
+            <!-- Detail PO -->
+            <div id="poDetailsContainer" class="mb-4 hidden">
+                <div class="bg-gray-50 p-3 rounded">
+                    <p class="text-sm"><strong>Pelanggan:</strong> <span id="poDetailPelanggan"></span></p>
+                    <p class="text-sm"><strong>Total:</strong> <span id="poDetailTotal"></span></p>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Barang yang Dikirim</label>
+                <div id="soItemsContainer"></div>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Buat SO</button>
+                <button type="button" onclick="closeModal('addSOModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+
+        
+
+        // Login
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    token = data.data.token;
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('adminName', data.data.admin.nama);
+                    document.getElementById('loginPage').classList.add('hidden');
+                    document.getElementById('dashboardPage').classList.remove('hidden');
+                    document.getElementById('adminName').textContent = data.data.admin.nama;
+                    loadDashboard();
+                } else {
+                    document.getElementById('loginError').textContent = data.message;
+                    document.getElementById('loginError').classList.remove('hidden');
+                }
+            } catch (error) {
+                document.getElementById('loginError').textContent = 'Error connecting to server';
+                document.getElementById('loginError').classList.remove('hidden');
+            }
+        });
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('adminName');
+            location.reload();
+        }
+
+        // Check if already logged in
+        if (token) {
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('dashboardPage').classList.remove('hidden');
+            document.getElementById('adminName').textContent = localStorage.getItem('adminName');
+            loadDashboard();
+        }
+
+        // Show Page
+        function showPage(page) {
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(page + 'Content').classList.remove('hidden');
+
+            if (page === 'dashboard') loadDashboard();
+            if (page === 'pelanggan') loadPelanggan();
+            if (page === 'barang') loadBarang();
+            if (page === 'po') loadPO();
+            if (page === 'so') loadSO();
+            if (page === 'nota') loadNota();
+            if (page === 'laporan') loadLaporan();
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/laporan/dashboard`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('statPenjualanHariIni').textContent = 
+                        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.penjualan.hariIni);
+                    document.getElementById('statTransaksiHariIni').textContent = data.data.transaksi.hariIni;
+                    document.getElementById('statTotalPelanggan').textContent = data.data.pelanggan.total;
+                    document.getElementById('statTotalBarang').textContent = data.data.barang.total;
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+            }
+        }
+
+        // Load Pelanggan
+        async function loadPelanggan() {
+            const search = document.getElementById('searchPelanggan')?.value || '';
+            try {
+                const response = await fetch(`${API_URL}/pelanggan?search=${search}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('pelangganTable');
+                tbody.innerHTML = '';
+                
+                if (data.success && data.data.pelanggan.length > 0) {
+                    data.data.pelanggan.forEach(p => {
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="px-6 py-3">${p.noplg}</td>
+                                <td class="px-6 py-3">${p.nmplg}</td>
+                                <td class="px-6 py-3">${p.alamat}</td>
+                                <td class="px-6 py-3">${p.telp}</td>
+                                <td class="px-6 py-3">
+                                    <button onclick="deletePelanggan('${p._id}')" class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading pelanggan:', error);
+            }
+        }
+
+        // Load Barang
+        async function loadBarang() {
+            const search = document.getElementById('searchBarang')?.value || '';
+            try {
+                const response = await fetch(`${API_URL}/barang?search=${search}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('barangTable');
+                tbody.innerHTML = '';
+                
+                if (data.success && data.data.barang.length > 0) {
+                    data.data.barang.forEach(b => {
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="px-6 py-3">${b.kdbrg}</td>
+                                <td class="px-6 py-3">${b.nmbrg}</td>
+                                <td class="px-6 py-3">${b.kategori?.nmkategori || '-'}</td>
+                                <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(b.harga)}</td>
+                                <td class="px-6 py-3">${b.stok}</td>
+                                <td class="px-6 py-3">
+                                    <button onclick="deleteBarang('${b._id}')" class="text-red-500 hover:text-red-700">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading barang:', error);
+            }
+        }
+
+        // Load PO
+        async function loadPO() {
+            try {
+                const response = await fetch(`${API_URL}/po`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('poTable');
+                tbody.innerHTML = '';
+                
+                if (data.success && data.data.po.length > 0) {
+                    data.data.po.forEach(p => {
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="px-6 py-3">${p.nopo}</td>
+                                <td class="px-6 py-3">${new Date(p.tglpo).toLocaleDateString('id-ID')}</td>
+                                <td class="px-6 py-3">${p.pelanggan?.nmplg || '-'}</td>
+                                <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.jmlhrg)}</td>
+                                <td class="px-6 py-3">
+                                    <span class="px-2 py-1 rounded text-sm ${p.status === 'pending' ? 'bg-yellow-200' : 'bg-green-200'}">${p.status}</span>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <button onclick="viewPO('${p._id}')" class="text-blue-500 hover:text-blue-700 mr-2">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading PO:', error);
+            }
+        }
+
+        // Load SO
+        async function loadSO() {
+            try {
+                const response = await fetch(`${API_URL}/so`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                const tbody = document.getElementById('soTable');
+                tbody.innerHTML = '';
+                
+                if (data.success && data.data.so.length > 0) {
+                    data.data.so.forEach(s => {
+                        tbody.innerHTML += `
+                            <tr class="border-b">
+                                <td class="px-6 py-3">${s.noso}</td>
+                                <td class="px-6 py-3">${new Date(s.tglso).toLocaleDateString('id-ID')}</td>
+                                <td class="px-6 py-3">${s.po?.nopo || '-'}</td>
+                                <td class="px-6 py-3">${s.po?.pelanggan?.nmplg || '-'}</td>
+                                <td class="px-6 py-3">
+                                    <span class="px-2 py-1 rounded text-sm ${s.status === 'pending' ? 'bg-yellow-200' : 'bg-green-200'}">${s.status}</span>
+                                </td>
+                                <td class="px-6 py-3">
+                                    <button onclick="viewSO('${s._id}')" class="text-blue-500 hover:text-blue-700">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading SO:', error);
+            }
+        }
+
+       // Load Nota
+async function loadNota() {
+    try {
+        const response = await fetch(`${API_URL}/nota`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('notaTable');
+        tbody.innerHTML = '';
+        
+        if (data.success && data.data.nota.length > 0) {
+            data.data.nota.forEach(n => {
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="px-6 py-3">${n.nonota}</td>
+                        <td class="px-6 py-3">${new Date(n.tglnota).toLocaleDateString('id-ID')}</td>
+                        <td class="px-6 py-3">${n.so?.po?.pelanggan?.nmplg || '-'}</td>
+                        <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.totalBayar)}</td>
+                        <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.sisaBayar)}</td>
+                        <td class="px-6 py-3">
+                            <button onclick="printNota('${n._id}')" class="text-blue-500 hover:text-blue-700 mr-2">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading nota:', error);
+    }
+}
+
+// Load Laporan
+async function loadLaporan() {
+    // Load Barang Terlaris
+    try {
+        const response = await fetch(`${API_URL}/laporan/barang-terlaris?limit=5`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const div = document.getElementById('barangTerlarisTable');
+        div.innerHTML = '';
+        
+        if (data.success && data.data.length > 0) {
+            div.innerHTML = '<table class="w-full"><thead><tr><th class="text-left">Nama Barang</th><th class="text-left">Terjual</th></tr></thead><tbody>';
+            data.data.forEach(b => {
+                div.innerHTML += `
+                    <tr class="border-b">
+                        <td class="py-2">${b.nmbrg}</td>
+                        <td class="py-2">${b.totalQty}</td>
+                    </tr>
+                `;
+            });
+            div.innerHTML += '</tbody></table>';
+        } else {
+            div.innerHTML = '<p class="text-gray-500">Belum ada data</p>';
+        }
+    } catch (error) {
+        console.error('Error loading barang terlaris:', error);
+    }
+
+    // Load Pelanggan Royal
+    try {
+        const response = await fetch(`${API_URL}/laporan/pelanggan-royal?limit=5`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const div = document.getElementById('pelangganRoyalTable');
+        div.innerHTML = '';
+        
+        if (data.success && data.data.length > 0) {
+            div.innerHTML = '<table class="w-full"><thead><tr><th class="text-left">Nama</th><th class="text-left">Total Belanja</th></tr></thead><tbody>';
+            data.data.forEach(p => {
+                div.innerHTML += `
+                    <tr class="border-b">
+                        <td class="py-2">${p.nmplg}</td>
+                        <td class="py-2">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(p.totalPembelian)}</td>
+                    </tr>
+                `;
+            });
+            div.innerHTML += '</tbody></table>';
+        } else {
+            div.innerHTML = '<p class="text-gray-500">Belum ada data</p>';
+        }
+    } catch (error) {
+        console.error('Error loading pelanggan royal:', error);
+    }
+}
+
+// Show Modal Functions
+function showAddPelangganModal() {
+    const modal = document.getElementById('addPelangganModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex'; // Tambahkan ini
+}
+
+function showAddBarangModal() {
+    loadKategoriSelect();
+    const modal = document.getElementById('addBarangModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex'; // Tambahkan ini
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    modal.style.display = 'none'; // Tambahkan ini
+}
+function showAddPOModal() {
+    alert('Fitur Buat PO - Silahkan develop lebih lanjut');
+}
+
+function showAddSOModal() {
+    alert('Fitur Buat SO - Silahkan develop lebih lanjut');
+}
+
+function showAddNotaModal() {
+    alert('Fitur Buat Nota - Silahkan develop lebih lanjut');
+}
+
+
+// Load Kategori untuk Select
+async function loadKategoriSelect() {
+    try {
+        const response = await fetch(`${API_URL}/barang/kategori`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('kategoriSelect');
+        select.innerHTML = '<option value="">Pilih Kategori</option>';
+        
+        if (data.success && data.data.length > 0) {
+            data.data.forEach(k => {
+                select.innerHTML += `<option value="${k._id}">${k.nmkategori}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading kategori:', error);
+    }
+}
+
+// Add Pelanggan
+document.getElementById('addPelangganForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        nmplg: document.getElementById('nmplg').value,
+        alamat: document.getElementById('alamat').value,
+        telp: document.getElementById('telp').value,
+        email: document.getElementById('email').value
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/pelanggan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Pelanggan berhasil ditambahkan!');
+            closeModal('addPelangganModal');
+            document.getElementById('addPelangganForm').reset();
+            loadPelanggan();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Add Barang
+document.getElementById('addBarangForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        nmbrg: document.getElementById('nmbrg').value,
+        kategori: document.getElementById('kategoriSelect').value,
+        harga: parseInt(document.getElementById('harga').value),
+        stok: parseInt(document.getElementById('stok').value)
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/barang`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Barang berhasil ditambahkan!');
+            closeModal('addBarangModal');
+            document.getElementById('addBarangForm').reset();
+            loadBarang();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Delete Pelanggan
+async function deletePelanggan(id) {
+    if (!confirm('Yakin ingin menghapus pelanggan ini?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}/pelanggan/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Pelanggan berhasil dihapus!');
+            loadPelanggan();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Delete Barang
+async function deleteBarang(id) {
+    if (!confirm('Yakin ingin menghapus barang ini?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}/barang/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Barang berhasil dihapus!');
+            loadBarang();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// View PO Detail
+async function viewPO(id) {
+    try {
+        const response = await fetch(`${API_URL}/po/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            let detailHTML = `
+                <h3>Detail PO: ${data.data.po.nopo}</h3>
+                <p>Pelanggan: ${data.data.po.pelanggan.nmplg}</p>
+                <p>Total: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.po.jmlhrg)}</p>
+                <br>
+                <table border="1" style="width:100%">
+                    <tr><th>Barang</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr>
+            `;
+            
+            data.data.details.forEach(d => {
+                detailHTML += `
+                    <tr>
+                        <td>${d.kdbrg.nmbrg}</td>
+                        <td>${d.qtypo}</td>
+                        <td>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(d.hargapo)}</td>
+                        <td>${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(d.subtotal)}</td>
+                    </tr>
+                `;
+            });
+            
+            detailHTML += '</table>';
+            alert(detailHTML);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// View SO Detail
+async function viewSO(id) {
+    try {
+        const response = await fetch(`${API_URL}/so/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(`Detail SO: ${data.data.so.noso}\nPO: ${data.data.so.po.nopo}\nStatus: ${data.data.so.status}`);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Print Nota
+async function printNota(id) {
+    window.open(`${API_URL}/nota/${id}/print`, '_blank');
+}
+
+// Download Laporan Penjualan
+function downloadLaporanPenjualan() {
+    const startDate = prompt('Masukkan tanggal mulai (YYYY-MM-DD):');
+    const endDate = prompt('Masukkan tanggal akhir (YYYY-MM-DD):');
+    
+    if (startDate && endDate) {
+        window.open(`${API_URL}/laporan/penjualan?startDate=${startDate}&endDate=${endDate}`, '_blank');
+    }
+}
+
+// Fix modal pada saat load
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('addPelangganModal').style.display = 'none';
+    document.getElementById('addBarangModal').style.display = 'none';
+});
+
+// Show Kategori Modal
+function showKategoriModal() {
+    loadKategoriList();
+    const modal = document.getElementById('kategoriModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+}
+
+// Load Kategori List
+async function loadKategoriList() {
+    try {
+        const response = await fetch(`${API_URL}/barang/kategori`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const div = document.getElementById('kategoriList');
+        div.innerHTML = '';
+        
+        if (data.success && data.data.length > 0) {
+            data.data.forEach(k => {
+                div.innerHTML += `
+                    <div class="flex justify-between items-center p-2 border-b hover:bg-gray-50">
+                        <div>
+                            <div class="font-semibold">${k.nmkategori}</div>
+                            <div class="text-sm text-gray-500">${k.deskripsi || '-'}</div>
+                        </div>
+                        <button onclick="deleteKategori('${k._id}')" class="text-red-500 hover:text-red-700">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        } else {
+            div.innerHTML = '<p class="text-gray-500 text-sm">Belum ada kategori</p>';
+        }
+    } catch (error) {
+        console.error('Error loading kategori:', error);
+    }
+}
+
+// Add Kategori
+document.getElementById('addKategoriForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        nmkategori: document.getElementById('nmkategori').value,
+        deskripsi: document.getElementById('deskripsi').value
+    };
+
+    try {
+        const response = await fetch(`${API_URL}/barang/kategori`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Kategori berhasil ditambahkan!');
+            document.getElementById('addKategoriForm').reset();
+            loadKategoriList(); // Reload list
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Delete Kategori
+async function deleteKategori(id) {
+    if (!confirm('Yakin ingin menghapus kategori ini?')) return;
+
+    try {
+        const response = await fetch(`${API_URL}/barang/kategori/${id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Kategori berhasil dihapus!');
+            loadKategoriList();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+};
+
+// Global variable untuk menyimpan data barang
+let allBarangData = [];
+
+// Show Add PO Modal
+async function showAddPOModal() {
+    await loadPelangganSelect();
+    await loadAllBarang();
+    const modal = document.getElementById('addPOModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+}
+
+// Load Pelanggan untuk Select
+async function loadPelangganSelect() {
+    try {
+        const response = await fetch(`${API_URL}/pelanggan?limit=1000`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('poPelangganSelect');
+        select.innerHTML = '<option value="">Pilih Pelanggan</option>';
+        
+        if (data.success && data.data.pelanggan.length > 0) {
+            data.data.pelanggan.forEach(p => {
+                select.innerHTML += `<option value="${p._id}">${p.nmplg}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading pelanggan:', error);
+    }
+}
+
+// Load All Barang
+async function loadAllBarang() {
+    try {
+        const response = await fetch(`${API_URL}/barang?limit=1000`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            allBarangData = data.data.barang;
+            updateAllBarangSelects();
+        }
+    } catch (error) {
+        console.error('Error loading barang:', error);
+    }
+}
+
+// Update All Barang Selects
+function updateAllBarangSelects() {
+    const selects = document.querySelectorAll('.po-barang-select');
+    selects.forEach(select => {
+        select.innerHTML = '<option value="">Pilih Barang</option>';
+        allBarangData.forEach(b => {
+            select.innerHTML += `<option value="${b._id}" data-harga="${b.harga}">${b.nmbrg} - Rp ${b.harga.toLocaleString('id-ID')}</option>`;
+        });
+    });
+}
+
+// Add PO Item
+function addPOItem() {
+    const container = document.getElementById('poItemsContainer');
+    const newItem = document.createElement('div');
+    newItem.className = 'po-item flex gap-2 mb-2';
+    newItem.innerHTML = `
+        <select class="flex-1 px-3 py-2 border rounded-lg po-barang-select" required>
+            <option value="">Pilih Barang</option>
+        </select>
+        <input type="number" placeholder="Qty" class="w-24 px-3 py-2 border rounded-lg po-qty" min="1" required>
+        <button type="button" onclick="removePOItem(this)" class="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    container.appendChild(newItem);
+    updateAllBarangSelects();
+}
+
+// Remove PO Item
+function removePOItem(button) {
+    const items = document.querySelectorAll('.po-item');
+    if (items.length > 1) {
+        button.parentElement.remove();
+    } else {
+        alert('Minimal harus ada 1 barang!');
+    }
+}
+
+// Submit PO Form
+document.getElementById('addPOForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const pelanggan = document.getElementById('poPelangganSelect').value;
+    const items = [];
+    
+    document.querySelectorAll('.po-item').forEach(item => {
+        const barangId = item.querySelector('.po-barang-select').value;
+        const qty = parseInt(item.querySelector('.po-qty').value);
+        
+        if (barangId && qty > 0) {
+            items.push({
+                kdbrg: barangId,
+                qtypo: qty
+            });
+        }
+    });
+
+    if (items.length === 0) {
+        alert('Pilih minimal 1 barang!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/po`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ pelanggan, items })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('PO berhasil dibuat!');
+            closeModal('addPOModal');
+            document.getElementById('addPOForm').reset();
+            loadPO();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Show Add SO Modal
+async function showAddSOModal() {
+    await loadPendingPO();
+    const modal = document.getElementById('addSOModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+}
+
+// Load Pending PO
+async function loadPendingPO() {
+    try {
+        const response = await fetch(`${API_URL}/po?status=pending`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('soPOSelect');
+        select.innerHTML = '<option value="">Pilih PO</option>';
+        
+        if (data.success && data.data.po.length > 0) {
+            data.data.po.forEach(p => {
+                select.innerHTML += `<option value="${p._id}">${p.nopo} - ${p.pelanggan.nmplg}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading PO:', error);
+    }
+}
+
+// Load PO Details
+async function loadPODetails() {
+    const poId = document.getElementById('soPOSelect').value;
+    
+    if (!poId) {
+        document.getElementById('poDetailsContainer').classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/po/${poId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('poDetailPelanggan').textContent = data.data.po.pelanggan.nmplg;
+            document.getElementById('poDetailTotal').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.po.jmlhrg);
+            document.getElementById('poDetailsContainer').classList.remove('hidden');
+            
+            // Load items
+            const container = document.getElementById('soItemsContainer');
+            container.innerHTML = '';
+            
+            data.data.details.forEach(detail => {
+                container.innerHTML += `
+                    <div class="flex gap-2 mb-2 items-center">
+                        <input type="hidden" class="so-barang-id" value="${detail.kdbrg._id}">
+                        <div class="flex-1 px-3 py-2 border rounded-lg bg-gray-50">${detail.kdbrg.nmbrg}</div>
+                        <input type="number" placeholder="Qty" class="w-24 px-3 py-2 border rounded-lg so-qty" min="1" max="${detail.qtypo}" value="${detail.qtypo}" required>
+                        <span class="text-sm text-gray-500">Max: ${detail.qtypo}</span>
+                    </div>
+                `;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading PO details:', error);
+    }
+}
+
+// Submit SO Form
+document.getElementById('addSOForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const poId = document.getElementById('soPOSelect').value;
+    const items = [];
+    
+    document.querySelectorAll('#soItemsContainer > div').forEach(item => {
+        const barangId = item.querySelector('.so-barang-id').value;
+        const qty = parseInt(item.querySelector('.so-qty').value);
+        
+        if (barangId && qty > 0) {
+            items.push({
+                kdbrg: barangId,
+                qty: qty
+            });
+        }
+    });
+
+    if (items.length === 0) {
+        alert('Pilih minimal 1 barang!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/so`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ po: poId, items })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('SO berhasil dibuat! Stok barang sudah dikurangi.');
+            closeModal('addSOModal');
+            document.getElementById('addSOForm').reset();
+            loadSO();
+            loadPO(); // Refresh PO juga karena statusnya berubah
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+    </script>
+</body>
+</html>
