@@ -6,6 +6,56 @@
     <title>PO System - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Nota */
+    #notaPreviewContent, #notaPreviewContent * {
+        visibility: visible;
+    }
+    
+    #notaPreviewContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    /* Surat Jalan */
+    #suratJalanPreviewContent, #suratJalanPreviewContent * {
+        visibility: visible;
+    }
+    
+    #suratJalanPreviewContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    /* Kwitansi */
+    #kwitansiPreviewContent, #kwitansiPreviewContent * {
+        visibility: visible;
+    }
+    
+    #kwitansiPreviewContent {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    /* Sembunyikan header modal */
+    #previewNotaModal > div > div:first-child,
+    #previewSuratJalanModal > div > div:first-child,
+    #previewKwitansiModal > div > div:first-child {
+        display: none;
+    }
+}
+</style>
 </head>
 <body class="bg-gray-100">
     <!-- Login Page -->
@@ -66,6 +116,12 @@
                     <button onclick="showPage('laporan')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
                         <i class="fas fa-chart-bar mr-2"></i> Laporan
                     </button>
+                    <button onclick="showPage('suratjalan')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+    <i class="fas fa-truck mr-2"></i> Surat Jalan
+</button>
+<button onclick="showPage('kwitansi')" class="w-full text-left px-4 py-2 hover:bg-blue-50 rounded mb-2">
+    <i class="fas fa-money-bill mr-2"></i> Kwitansi
+</button>
                 </div>
             </div>
 
@@ -249,6 +305,57 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Surat Jalan Page -->
+<div id="suratjalanContent" class="page-content hidden">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Surat Jalan</h2>
+        <button onclick="showAddSuratJalanModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            <i class="fas fa-plus mr-2"></i> Buat Surat Jalan
+        </button>
+    </div>
+    <div class="bg-white rounded-lg shadow">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">No SJ</th>
+                    <th class="px-6 py-3 text-left">Tanggal</th>
+                    <th class="px-6 py-3 text-left">No SO</th>
+                    <th class="px-6 py-3 text-left">Pelanggan</th>
+                    <th class="px-6 py-3 text-left">Alamat Kirim</th>
+                    <th class="px-6 py-3 text-left">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="suratJalanTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Kwitansi Page -->
+<div id="kwitansiContent" class="page-content hidden">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Kwitansi</h2>
+        <button onclick="showAddKwitansiModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            <i class="fas fa-plus mr-2"></i> Buat Kwitansi
+        </button>
+    </div>
+    <div class="bg-white rounded-lg shadow">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left">No Kwitansi</th>
+                    <th class="px-6 py-3 text-left">Tanggal</th>
+                    <th class="px-6 py-3 text-left">No Nota</th>
+                    <th class="px-6 py-3 text-left">Pelanggan</th>
+                    <th class="px-6 py-3 text-left">Jumlah Bayar</th>
+                    <th class="px-6 py-3 text-left">Metode</th>
+                    <th class="px-6 py-3 text-left">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="kwitansiTable"></tbody>
+        </table>
+    </div>
+</div>
             </div>
         </div>
     </div>
@@ -433,6 +540,426 @@
     </div>
 </div>
 
+<!-- Modal Buat Surat Jalan -->
+<div id="addSuratJalanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-[500px]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Buat Surat Jalan</h3>
+            <button onclick="closeModal('addSuratJalanModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addSuratJalanForm">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Sales Order</label>
+                <select id="sjSOSelect" class="w-full px-3 py-2 border rounded-lg" required onchange="loadSOForSJ()">
+                    <option value="">Pilih SO</option>
+                </select>
+            </div>
+
+            <div id="sjSODetail" class="mb-4 hidden bg-gray-50 p-3 rounded">
+                <p class="text-sm"><strong>Pelanggan:</strong> <span id="sjPelanggan"></span></p>
+                <p class="text-sm"><strong>Alamat:</strong> <span id="sjAlamatDefault"></span></p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Alamat Pengiriman</label>
+                <textarea id="sjAlamat" class="w-full px-3 py-2 border rounded-lg" rows="3" required placeholder="Masukkan alamat pengiriman"></textarea>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-truck mr-2"></i> Buat Surat Jalan
+                </button>
+                <button type="button" onclick="closeModal('addSuratJalanModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Buat Kwitansi -->
+<div id="addKwitansiModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-[500px]">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Buat Kwitansi</h3>
+            <button onclick="closeModal('addKwitansiModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addKwitansiForm">
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Nota</label>
+                <select id="kwitansiNotaSelect" class="w-full px-3 py-2 border rounded-lg" required onchange="loadNotaForKwitansi()">
+                    <option value="">Pilih Nota</option>
+                </select>
+            </div>
+
+            <div id="kwitansiNotaDetail" class="mb-4 hidden bg-gray-50 p-3 rounded">
+                <p class="text-sm"><strong>Pelanggan:</strong> <span id="kwitansiPelanggan"></span></p>
+                <p class="text-sm"><strong>Total:</strong> <span id="kwitansiTotal"></span></p>
+                <p class="text-sm"><strong>Sudah Dibayar:</strong> <span id="kwitansiDP"></span></p>
+                <p class="text-sm font-bold text-red-600"><strong>Sisa Bayar:</strong> <span id="kwitansiSisa"></span></p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Jumlah Bayar</label>
+                <input type="number" id="kwitansiJumlah" class="w-full px-3 py-2 border rounded-lg" min="1" required placeholder="Masukkan jumlah pembayaran">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Metode Pembayaran</label>
+                <select id="kwitansiMetode" class="w-full px-3 py-2 border rounded-lg" required>
+                    <option value="cash">Cash</option>
+                    <option value="transfer">Transfer</option>
+                    <option value="giro">Giro</option>
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-receipt mr-2"></i> Buat Kwitansi
+                </button>
+                <button type="button" onclick="closeModal('addKwitansiModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Preview Nota -->
+<div id="previewNotaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <h3 class="text-xl font-bold">Preview Nota</h3>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+    <i class="fas fa-print mr-2"></i> Print Preview
+</button>
+                <button onclick="closeModal('previewNotaModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Nota Template -->
+        <div id="notaPreviewContent" class="p-8">
+            <!-- Header Perusahaan -->
+            <div class="text-center border-b-2 border-black pb-4 mb-6">
+                <h1 class="text-3xl font-bold">CV. NAMA PERUSAHAAN</h1>
+                <p class="text-sm">Jl. Alamat Perusahaan No. 123, Kota</p>
+                <p class="text-sm">Telp: (021) 12345678 | Email: info@perusahaan.com</p>
+            </div>
+
+            <!-- Judul Nota -->
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold">NOTA PENJUALAN</h2>
+            </div>
+
+            <!-- Info Nota & Pelanggan -->
+            <div class="grid grid-cols-2 gap-8 mb-6">
+                <div>
+                    <table class="w-full text-sm">
+                        <tr>
+                            <td class="py-1 font-semibold w-32">No. Nota</td>
+                            <td class="py-1">: <span id="prevNotaNo"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">Tanggal</td>
+                            <td class="py-1">: <span id="prevNotaTgl"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">No. SO</td>
+                            <td class="py-1">: <span id="prevNotaSO"></span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div>
+                    <table class="w-full text-sm">
+                        <tr>
+                            <td class="py-1 font-semibold w-32">Kepada Yth</td>
+                            <td class="py-1">: <span id="prevNotaPelanggan"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">Alamat</td>
+                            <td class="py-1">: <span id="prevNotaAlamat"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">Telp</td>
+                            <td class="py-1">: <span id="prevNotaTelp"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabel Barang -->
+            <table class="w-full border-collapse border border-gray-300 mb-6">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Nama Barang</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Qty</th>
+                        <th class="border border-gray-300 px-4 py-2 text-right">Harga Satuan</th>
+                        <th class="border border-gray-300 px-4 py-2 text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody id="prevNotaItems"></tbody>
+                <tfoot>
+                    <tr class="bg-gray-50 font-bold">
+                        <td colspan="4" class="border border-gray-300 px-4 py-2 text-right">TOTAL</td>
+                        <td class="border border-gray-300 px-4 py-2 text-right" id="prevNotaTotal"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="border border-gray-300 px-4 py-2 text-right">DP / Uang Muka</td>
+                        <td class="border border-gray-300 px-4 py-2 text-right" id="prevNotaDP"></td>
+                    </tr>
+                    <tr class="bg-yellow-50 font-bold text-lg">
+                        <td colspan="4" class="border border-gray-300 px-4 py-2 text-right">SISA BAYAR</td>
+                        <td class="border border-gray-300 px-4 py-2 text-right text-red-600" id="prevNotaSisa"></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Terbilang -->
+            <div class="mb-6">
+                <p class="text-sm"><span class="font-semibold">Terbilang:</span> <span id="prevNotaTerbilang" class="italic"></span></p>
+            </div>
+
+            <!-- TTD -->
+            <div class="grid grid-cols-2 gap-8 mt-16">
+                <div class="text-center">
+                    <p class="mb-16">Penerima,</p>
+                    <p class="border-t border-black inline-block px-8">(.....................)</p>
+                </div>
+                <div class="text-center">
+                    <p class="mb-16">Hormat Kami,</p>
+                    <p class="border-t border-black inline-block px-8">(.....................)</p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center text-xs text-gray-500 mt-8 pt-4 border-t">
+                <p>Terima kasih atas kepercayaan Anda</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Buat Nota -->
+<div id="addNotaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center" style="display: none;">
+    <div class="bg-white p-6 rounded-lg w-[600px] max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold">Buat Nota</h3>
+            <button onclick="closeModal('addNotaModal')" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addNotaForm">
+            <!-- Pilih SO -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Sales Order</label>
+                <select id="notaSOSelect" class="w-full px-3 py-2 border rounded-lg" required onchange="loadSODetailsForNota()">
+                    <option value="">Pilih SO</option>
+                </select>
+            </div>
+
+            <!-- Detail SO -->
+            <div id="soDetailsContainer" class="mb-4 hidden">
+                <div class="bg-gray-50 p-4 rounded">
+                    <p class="text-sm mb-2"><strong>No SO:</strong> <span id="soDetailNo"></span></p>
+                    <p class="text-sm mb-2"><strong>Pelanggan:</strong> <span id="soDetailPelanggan"></span></p>
+                    <p class="text-sm mb-2"><strong>Total Harga:</strong> <span id="soDetailTotal" class="font-bold text-lg text-blue-600"></span></p>
+                    
+                    <hr class="my-3">
+                    
+                    <h4 class="font-bold mb-2">Detail Barang:</h4>
+                    <div id="soDetailItems" class="space-y-2"></div>
+                </div>
+            </div>
+
+            <!-- DP / Uang Muka -->
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">DP / Uang Muka (Opsional)</label>
+                <input type="number" id="notaDP" class="w-full px-3 py-2 border rounded-lg" min="0" value="0" placeholder="Masukkan jumlah DP">
+                <p class="text-sm text-gray-500 mt-1">Kosongkan atau isi 0 jika pembayaran lunas</p>
+            </div>
+
+            <!-- Summary -->
+            <div id="notaSummary" class="mb-4 hidden">
+                <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                    <div class="flex justify-between mb-2">
+                        <span>Total Bayar:</span>
+                        <span id="summaryTotal" class="font-bold"></span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span>DP:</span>
+                        <span id="summaryDP" class="font-bold text-green-600"></span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between">
+                        <span class="font-bold">Sisa Bayar:</span>
+                        <span id="summarySisa" class="font-bold text-red-600"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-blue-500 text-white py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-file-invoice mr-2"></i> Buat Nota
+                </button>
+                <button type="button" onclick="closeModal('addNotaModal')" class="flex-1 bg-gray-300 py-2 rounded hover:bg-gray-400">Batal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Preview Surat Jalan -->
+<div id="previewSuratJalanModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <h3 class="text-xl font-bold">Preview Surat Jalan</h3>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-print mr-2"></i> Print
+                </button>
+                <button onclick="closeModal('previewSuratJalanModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="suratJalanPreviewContent" class="p-8">
+            <div class="text-center border-b-2 border-black pb-4 mb-6">
+                <h1 class="text-3xl font-bold">CV. NAMA PERUSAHAAN</h1>
+                <p class="text-sm">Jl. Alamat Perusahaan No. 123, Kota</p>
+            </div>
+
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold">SURAT JALAN</h2>
+            </div>
+
+            <div class="grid grid-cols-2 gap-8 mb-6">
+                <div>
+                    <table class="w-full text-sm">
+                        <tr>
+                            <td class="py-1 font-semibold w-32">No. SJ</td>
+                            <td class="py-1">: <span id="prevSJNo"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">Tanggal</td>
+                            <td class="py-1">: <span id="prevSJTgl"></span></td>
+                        </tr>
+                    </table>
+                </div>
+                <div>
+                    <table class="w-full text-sm">
+                        <tr>
+                            <td class="py-1 font-semibold w-32">Kepada</td>
+                            <td class="py-1">: <span id="prevSJPelanggan"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-semibold">Alamat</td>
+                            <td class="py-1">: <span id="prevSJAlamat"></span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <table class="w-full border-collapse border border-gray-300 mb-6">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="border border-gray-300 px-4 py-2 text-left">No</th>
+                        <th class="border border-gray-300 px-4 py-2 text-left">Nama Barang</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Jumlah</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Keterangan</th>
+                    </tr>
+                </thead>
+                <tbody id="prevSJItems"></tbody>
+            </table>
+
+            <div class="grid grid-cols-2 gap-8 mt-16">
+                <div class="text-center">
+                    <p class="mb-16">Penerima,</p>
+                    <p class="border-t border-black inline-block px-8">(.....................)</p>
+                </div>
+                <div class="text-center">
+                    <p class="mb-16">Pengirim,</p>
+                    <p class="border-t border-black inline-block px-8">(.....................)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Preview Kwitansi -->
+<div id="previewKwitansiModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" style="display: none;">
+    <div class="bg-white rounded-lg w-[800px] max-h-[90vh] overflow-y-auto">
+        <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <h3 class="text-xl font-bold">Preview Kwitansi</h3>
+            <div class="flex gap-2">
+                <button onclick="window.print()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    <i class="fas fa-print mr-2"></i> Print
+                </button>
+                <button onclick="closeModal('previewKwitansiModal')" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="kwitansiPreviewContent" class="p-8">
+            <div class="text-center border-b-2 border-black pb-4 mb-6">
+                <h1 class="text-3xl font-bold">CV. NAMA PERUSAHAAN</h1>
+                <p class="text-sm">Jl. Alamat Perusahaan No. 123, Kota</p>
+            </div>
+
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold">KWITANSI</h2>
+            </div>
+
+            <table class="w-full text-sm mb-6">
+                <tr>
+                    <td class="py-2 w-40">No. Kwitansi</td>
+                    <td class="py-2">: <span id="prevKwitNo"></span></td>
+                </tr>
+                <tr>
+                    <td class="py-2">Tanggal</td>
+                    <td class="py-2">: <span id="prevKwitTgl"></span></td>
+                </tr>
+            </table>
+
+            <div class="mb-6">
+                <p class="mb-4">Telah terima dari:</p>
+                <table class="w-full text-sm">
+                    <tr>
+                        <td class="py-2 w-40">Nama</td>
+                        <td class="py-2">: <span id="prevKwitPelanggan"></span></td>
+                    </tr>
+                    <tr>
+                        <td class="py-2">Alamat</td>
+                        <td class="py-2">: <span id="prevKwitAlamat"></span></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="border-2 border-black p-4 mb-6">
+                <p class="text-lg">Uang sejumlah: <span id="prevKwitJumlah" class="font-bold"></span></p>
+                <p class="text-sm italic mt-2">Terbilang: <span id="prevKwitTerbilang"></span></p>
+            </div>
+
+            <div class="mb-6">
+                <p>Untuk pembayaran: <span id="prevKwitKeperluan"></span></p>
+                <p>Metode Pembayaran: <span id="prevKwitMetode" class="font-bold"></span></p>
+            </div>
+
+            <div class="text-right mt-16">
+                <p class="mb-16">Penerima,</p>
+                <p class="border-t border-black inline-block px-8">(.....................)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
     <script>
         const API_URL = 'http://localhost:5000/api';
         let token = localStorage.getItem('token');
@@ -498,6 +1025,8 @@
             if (page === 'po') loadPO();
             if (page === 'so') loadSO();
             if (page === 'nota') loadNota();
+            if (page === 'suratjalan') loadSuratJalan(); 
+    if (page === 'kwitansi') loadKwitansi();
             if (page === 'laporan') loadLaporan();
         }
 
@@ -675,25 +1204,50 @@ async function loadNota() {
         
         if (data.success && data.data.nota.length > 0) {
             data.data.nota.forEach(n => {
+                const statusBayar = n.sisaBayar === 0 ? 
+                    '<span class="px-2 py-1 bg-green-200 text-green-800 rounded text-xs">Lunas</span>' : 
+                    '<span class="px-2 py-1 bg-yellow-200 text-yellow-800 rounded text-xs">Belum Lunas</span>';
+                
                 tbody.innerHTML += `
-                    <tr class="border-b">
+                    <tr class="border-b hover:bg-gray-50">
                         <td class="px-6 py-3">${n.nonota}</td>
                         <td class="px-6 py-3">${new Date(n.tglnota).toLocaleDateString('id-ID')}</td>
                         <td class="px-6 py-3">${n.so?.po?.pelanggan?.nmplg || '-'}</td>
                         <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.totalBayar)}</td>
-                        <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.sisaBayar)}</td>
                         <td class="px-6 py-3">
-                            <button onclick="printNota('${n._id}')" class="text-blue-500 hover:text-blue-700 mr-2">
-                                <i class="fas fa-print"></i>
+                            ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.sisaBayar)}
+                            ${statusBayar}
+                        </td>
+                        <td class="px-6 py-3">
+                            <button onclick="previewNota('${n._id}')" class="text-blue-500 hover:text-blue-700 mr-2" title="Preview & Print">
+                                <i class="fas fa-eye"></i> Preview
                             </button>
+                            ${n.sisaBayar > 0 ? `
+                                <button onclick="bayarNota('${n._id}')" class="text-green-500 hover:text-green-700" title="Bayar Cicilan">
+                                    <i class="fas fa-money-bill"></i> Bayar
+                                </button>
+                            ` : ''}
                         </td>
                     </tr>
                 `;
             });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-3 text-center text-gray-500">Belum ada data</td></tr>';
         }
     } catch (error) {
         console.error('Error loading nota:', error);
     }
+}
+
+// Fungsi bayar nota (redirect ke kwitansi)
+function bayarNota(notaId) {
+    showPage('kwitansi');
+    setTimeout(() => {
+        showAddKwitansiModal();
+        // Auto select nota di dropdown
+        document.getElementById('kwitansiNotaSelect').value = notaId;
+        loadNotaForKwitansi();
+    }, 300);
 }
 
 // Load Laporan
@@ -785,10 +1339,119 @@ function showAddSOModal() {
     alert('Fitur Buat SO - Silahkan develop lebih lanjut');
 }
 
-function showAddNotaModal() {
-    alert('Fitur Buat Nota - Silahkan develop lebih lanjut');
+// Show Add Nota Modal
+async function showAddNotaModal() {
+    await loadProcessedSO();
+    const modal = document.getElementById('addNotaModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
 }
 
+// Load SO yang sudah processed (belum punya nota)
+async function loadProcessedSO() {
+    try {
+        const response = await fetch(`${API_URL}/so`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('notaSOSelect');
+        select.innerHTML = '<option value="">Pilih SO</option>';
+        
+        if (data.success && data.data.so.length > 0) {
+            // Filter SO yang statusnya bukan cancelled
+            const validSO = data.data.so.filter(s => s.status !== 'cancelled');
+            
+            validSO.forEach(s => {
+                select.innerHTML += `<option value="${s._id}">${s.noso} - ${s.po?.pelanggan?.nmplg || 'N/A'}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading SO:', error);
+    }
+}
+
+// Variable untuk menyimpan total
+let currentSOTotal = 0;
+
+// Load SO Details untuk Nota
+async function loadSODetailsForNota() {
+    const soId = document.getElementById('notaSOSelect').value;
+    
+    if (!soId) {
+        document.getElementById('soDetailsContainer').classList.add('hidden');
+        document.getElementById('notaSummary').classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/so/${soId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            // Set detail header
+            document.getElementById('soDetailNo').textContent = data.data.so.noso;
+            document.getElementById('soDetailPelanggan').textContent = data.data.so.po?.pelanggan?.nmplg || 'N/A';
+            
+            // Calculate total
+            currentSOTotal = data.data.details.reduce((sum, item) => sum + item.subtotal, 0);
+            document.getElementById('soDetailTotal').textContent = new Intl.NumberFormat('id-ID', { 
+                style: 'currency', 
+                currency: 'IDR' 
+            }).format(currentSOTotal);
+            
+            // Set items
+            const itemsContainer = document.getElementById('soDetailItems');
+            itemsContainer.innerHTML = '';
+            
+            data.data.details.forEach(item => {
+                itemsContainer.innerHTML += `
+                    <div class="flex justify-between text-sm bg-white p-2 rounded">
+                        <span>${item.kdbrg?.nmbrg || 'N/A'}</span>
+                        <span>${item.qty} x ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.hargajual)}</span>
+                        <span class="font-bold">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(item.subtotal)}</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('soDetailsContainer').classList.remove('hidden');
+            
+            // Update summary
+            updateNotaSummary();
+        }
+    } catch (error) {
+        console.error('Error loading SO details:', error);
+    }
+}
+
+// Update Nota Summary saat DP berubah
+function updateNotaSummary() {
+    const dp = parseInt(document.getElementById('notaDP').value) || 0;
+    
+    if (currentSOTotal > 0) {
+        const sisaBayar = currentSOTotal - dp;
+        
+        document.getElementById('summaryTotal').textContent = new Intl.NumberFormat('id-ID', { 
+            style: 'currency', 
+            currency: 'IDR' 
+        }).format(currentSOTotal);
+        
+        document.getElementById('summaryDP').textContent = new Intl.NumberFormat('id-ID', { 
+            style: 'currency', 
+            currency: 'IDR' 
+        }).format(dp);
+        
+        document.getElementById('summarySisa').textContent = new Intl.NumberFormat('id-ID', { 
+            style: 'currency', 
+            currency: 'IDR' 
+        }).format(sisaBayar);
+        
+        document.getElementById('notaSummary').classList.remove('hidden');
+    }
+}
 
 // Load Kategori untuk Select
 async function loadKategoriSelect() {
@@ -983,8 +1646,8 @@ async function viewSO(id) {
 }
 
 // Print Nota
-async function printNota(id) {
-    window.open(`${API_URL}/nota/${id}/print`, '_blank');
+function printNota(id) {
+    window.open(`${API_URL}/nota/${id}/print?token=${token}`, '_blank');
 }
 
 // Download Laporan Penjualan
@@ -1359,6 +2022,538 @@ document.getElementById('addSOForm').addEventListener('submit', async (e) => {
         alert('Error: ' + error.message);
     }
 });
+
+// ============= SURAT JALAN =============
+
+// Show Add Surat Jalan Modal
+async function showAddSuratJalanModal() {
+    await loadSOForSuratJalan();
+    const modal = document.getElementById('addSuratJalanModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+}
+
+// Load SO untuk Surat Jalan
+async function loadSOForSuratJalan() {
+    try {
+        const response = await fetch(`${API_URL}/so`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('sjSOSelect');
+        select.innerHTML = '<option value="">Pilih SO</option>';
+        
+        if (data.success && data.data.so.length > 0) {
+            data.data.so.forEach(s => {
+                select.innerHTML += `<option value="${s._id}">${s.noso} - ${s.po?.pelanggan?.nmplg || 'N/A'}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading SO:', error);
+    }
+}
+
+// Load SO Detail untuk SJ
+async function loadSOForSJ() {
+    const soId = document.getElementById('sjSOSelect').value;
+    
+    if (!soId) {
+        document.getElementById('sjSODetail').classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/so/${soId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('sjPelanggan').textContent = data.data.so.po?.pelanggan?.nmplg || 'N/A';
+            document.getElementById('sjAlamatDefault').textContent = data.data.so.po?.pelanggan?.alamat || 'N/A';
+            document.getElementById('sjAlamat').value = data.data.so.po?.pelanggan?.alamat || '';
+            document.getElementById('sjSODetail').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error loading SO:', error);
+    }
+}
+
+// Submit Surat Jalan Form
+document.getElementById('addSuratJalanForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const soId = document.getElementById('sjSOSelect').value;
+    const alamatkirim = document.getElementById('sjAlamat').value;
+
+    try {
+        const response = await fetch(`${API_URL}/surat-jalan`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ so: soId, alamatkirim })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Surat Jalan berhasil dibuat!');
+            closeModal('addSuratJalanModal');
+            document.getElementById('addSuratJalanForm').reset();
+            loadSuratJalan();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Load Surat Jalan
+async function loadSuratJalan() {
+    try {
+        const response = await fetch(`${API_URL}/surat-jalan`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('suratJalanTable');
+        tbody.innerHTML = '';
+        
+        if (data.success && data.data.suratJalan.length > 0) {
+            data.data.suratJalan.forEach(sj => {
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="px-6 py-3">${sj.nosj}</td>
+                        <td class="px-6 py-3">${new Date(sj.tglsj).toLocaleDateString('id-ID')}</td>
+                        <td class="px-6 py-3">${sj.so?.noso || '-'}</td>
+                        <td class="px-6 py-3">${sj.so?.po?.pelanggan?.nmplg || '-'}</td>
+                        <td class="px-6 py-3">${sj.alamatkirim}</td>
+                        <td class="px-6 py-3">
+                            <button onclick="printSuratJalan('${sj._id}')" class="text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-3 text-center text-gray-500">Belum ada data</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading surat jalan:', error);
+    }
+}
+
+// Print Surat Jalan
+function printSuratJalan(id) {
+    window.open(`${API_URL}/surat-jalan/${id}/print?token=${token}`, '_blank');
+}
+
+// ============= KWITANSI =============
+
+// Show Add Kwitansi Modal
+async function showAddKwitansiModal() {
+    await loadNotaWithSisa();
+    const modal = document.getElementById('addKwitansiModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    modal.style.display = 'flex';
+}
+
+// Load Nota yang masih ada sisa bayar
+async function loadNotaWithSisa() {
+    try {
+        const response = await fetch(`${API_URL}/nota`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const select = document.getElementById('kwitansiNotaSelect');
+        select.innerHTML = '<option value="">Pilih Nota</option>';
+        
+        if (data.success && data.data.nota.length > 0) {
+            // Filter nota yang masih punya sisa bayar
+            const notaWithSisa = data.data.nota.filter(n => n.sisaBayar > 0);
+            
+            notaWithSisa.forEach(n => {
+                select.innerHTML += `<option value="${n._id}">${n.nonota} - ${n.so?.po?.pelanggan?.nmplg || 'N/A'} (Sisa: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(n.sisaBayar)})</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading nota:', error);
+    }
+}
+
+// Variable untuk menyimpan sisa bayar
+let currentSisaBayar = 0;
+
+// Load Nota Detail untuk Kwitansi
+async function loadNotaForKwitansi() {
+    const notaId = document.getElementById('kwitansiNotaSelect').value;
+    
+    if (!notaId) {
+        document.getElementById('kwitansiNotaDetail').classList.add('hidden');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/nota/${notaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            currentSisaBayar = data.data.nota.sisaBayar;
+            
+            document.getElementById('kwitansiPelanggan').textContent = data.data.nota.so?.po?.pelanggan?.nmplg || 'N/A';
+            document.getElementById('kwitansiTotal').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.totalBayar);
+            document.getElementById('kwitansiDP').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.dp);
+            document.getElementById('kwitansiSisa').textContent = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.sisaBayar);
+            
+            // Set max jumlah bayar
+            document.getElementById('kwitansiJumlah').max = currentSisaBayar;
+            document.getElementById('kwitansiJumlah').placeholder = `Max: ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(currentSisaBayar)}`;
+            
+            document.getElementById('kwitansiNotaDetail').classList.remove('hidden');
+        }
+    } catch (error) {
+        console.error('Error loading nota:', error);
+    }
+}
+
+// Submit Kwitansi Form
+document.getElementById('addKwitansiForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const notaId = document.getElementById('kwitansiNotaSelect').value;
+    const jumlahBayar = parseInt(document.getElementById('kwitansiJumlah').value);
+    const metodeBayar = document.getElementById('kwitansiMetode').value;
+
+    if (jumlahBayar > currentSisaBayar) {
+        alert('Jumlah bayar tidak boleh melebihi sisa bayar!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/kwitansi`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ 
+                nota: notaId, 
+                jumlahBayar,
+                metodeBayar 
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Kwitansi berhasil dibuat!');
+            closeModal('addKwitansiModal');
+            document.getElementById('addKwitansiForm').reset();
+            loadKwitansi();
+            loadNota(); // Refresh nota juga
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Load Kwitansi
+async function loadKwitansi() {
+    try {
+        const response = await fetch(`${API_URL}/kwitansi`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        const tbody = document.getElementById('kwitansiTable');
+        tbody.innerHTML = '';
+        
+        if (data.success && data.data.kwitansi.length > 0) {
+            data.data.kwitansi.forEach(k => {
+                tbody.innerHTML += `
+                    <tr class="border-b">
+                        <td class="px-6 py-3">${k.nokwit}</td>
+                        <td class="px-6 py-3">${new Date(k.tglkwit).toLocaleDateString('id-ID')}</td>
+                        <td class="px-6 py-3">${k.nota?.nonota || '-'}</td>
+                        <td class="px-6 py-3">${k.nota?.so?.po?.pelanggan?.nmplg || '-'}</td>
+                        <td class="px-6 py-3">${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(k.jumlahBayar)}</td>
+                        <td class="px-6 py-3">
+                            <span class="px-2 py-1 rounded text-sm bg-green-200">${k.metodeBayar}</span>
+                        </td>
+                        <td class="px-6 py-3">
+                            <button onclick="printKwitansi('${k._id}')" class="text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-print"></i> Print
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-3 text-center text-gray-500">Belum ada data</td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading kwitansi:', error);
+    }
+}
+
+// Print Kwitansi
+function printKwitansi(id) {
+    window.open(`${API_URL}/kwitansi/${id}/print?token=${token}`, '_blank');
+}
+
+// Variable untuk menyimpan data nota yang sedang di-preview
+let currentNotaData = null;
+
+// Fungsi untuk preview nota
+async function previewNota(notaId) {
+    try {
+        const response = await fetch(`${API_URL}/nota/${notaId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            currentNotaData = data.data;
+            
+            // Set data ke preview
+            document.getElementById('prevNotaNo').textContent = data.data.nota.nonota;
+            document.getElementById('prevNotaTgl').textContent = new Date(data.data.nota.tglnota).toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('prevNotaSO').textContent = data.data.nota.so?.noso || '-';
+            document.getElementById('prevNotaPelanggan').textContent = data.data.nota.so?.po?.pelanggan?.nmplg || '-';
+            document.getElementById('prevNotaAlamat').textContent = data.data.nota.so?.po?.pelanggan?.alamat || '-';
+            document.getElementById('prevNotaTelp').textContent = data.data.nota.so?.po?.pelanggan?.telp || '-';
+            
+            // Set items
+            const itemsBody = document.getElementById('prevNotaItems');
+            itemsBody.innerHTML = '';
+            
+            data.data.details.forEach((item, index) => {
+                itemsBody.innerHTML += `
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2 text-center">${index + 1}</td>
+                        <td class="border border-gray-300 px-4 py-2">${item.kdbrg?.nmbrg || '-'}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">${item.qty}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-right">${formatRupiah(item.hargajual)}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-right">${formatRupiah(item.subtotal)}</td>
+                    </tr>
+                `;
+            });
+            
+            // Set totals
+            document.getElementById('prevNotaTotal').textContent = formatRupiah(data.data.nota.totalBayar);
+            document.getElementById('prevNotaDP').textContent = formatRupiah(data.data.nota.dp);
+            document.getElementById('prevNotaSisa').textContent = formatRupiah(data.data.nota.sisaBayar);
+            
+            // Set terbilang
+            document.getElementById('prevNotaTerbilang').textContent = terbilang(data.data.nota.totalBayar) + ' Rupiah';
+            
+            // Show modal
+            const modal = document.getElementById('previewNotaModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.style.display = 'flex';
+        }
+    } catch (error) {
+        alert('Error loading nota: ' + error.message);
+    }
+}
+
+// Format Rupiah
+function formatRupiah(angka) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(angka);
+}
+
+// Fungsi Terbilang
+function terbilang(angka) {
+    const bilangan = ['', 'Satu', 'Dua', 'Tiga', 'Empat', 'Lima', 'Enam', 'Tujuh', 'Delapan', 'Sembilan', 'Sepuluh', 'Sebelas'];
+    
+    if (angka < 12) {
+        return bilangan[angka];
+    } else if (angka < 20) {
+        return terbilang(angka - 10) + ' Belas';
+    } else if (angka < 100) {
+        return terbilang(Math.floor(angka / 10)) + ' Puluh ' + terbilang(angka % 10);
+    } else if (angka < 200) {
+        return 'Seratus ' + terbilang(angka - 100);
+    } else if (angka < 1000) {
+        return terbilang(Math.floor(angka / 100)) + ' Ratus ' + terbilang(angka % 100);
+    } else if (angka < 2000) {
+        return 'Seribu ' + terbilang(angka - 1000);
+    } else if (angka < 1000000) {
+        return terbilang(Math.floor(angka / 1000)) + ' Ribu ' + terbilang(angka % 1000);
+    } else if (angka < 1000000000) {
+        return terbilang(Math.floor(angka / 1000000)) + ' Juta ' + terbilang(angka % 1000000);
+    } else if (angka < 1000000000000) {
+        return terbilang(Math.floor(angka / 1000000000)) + ' Milyar ' + terbilang(angka % 1000000000);
+    } else {
+        return terbilang(Math.floor(angka / 1000000000000)) + ' Triliun ' + terbilang(angka % 1000000000000);
+    }
+}
+
+// Download PDF dari preview
+function downloadNotaPDF() {
+    if (currentNotaData) {
+        const encodedToken = encodeURIComponent(token);
+        window.open(`${API_URL}/nota/${currentNotaData.nota._id}/print?token=${encodedToken}`, '_blank');
+    }
+}
+
+// Update fungsi printNota jadi preview
+function printNota(id) {
+    previewNota(id);
+}
+
+// Update Nota Summary saat DP berubah
+document.getElementById('notaDP').addEventListener('input', updateNotaSummary);
+
+// Submit Nota Form
+document.getElementById('addNotaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const soId = document.getElementById('notaSOSelect').value;
+    const dp = parseInt(document.getElementById('notaDP').value) || 0;
+
+    if (!soId) {
+        alert('Pilih SO terlebih dahulu!');
+        return;
+    }
+
+    if (dp > currentSOTotal) {
+        alert('DP tidak boleh melebihi total harga!');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_URL}/nota`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ 
+                so: soId, 
+                dp: dp 
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Nota berhasil dibuat!\n\n' + 
+                  'No Nota: ' + data.data.nota.nonota + '\n' +
+                  'Total: ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.totalBayar) + '\n' +
+                  'DP: ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.dp) + '\n' +
+                  'Sisa Bayar: ' + new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(data.data.nota.sisaBayar));
+            
+            closeModal('addNotaModal');
+            document.getElementById('addNotaForm').reset();
+            document.getElementById('soDetailsContainer').classList.add('hidden');
+            document.getElementById('notaSummary').classList.add('hidden');
+            currentSOTotal = 0;
+            loadNota();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+});
+
+// Preview Surat Jalan
+async function previewSuratJalan(sjId) {
+    try {
+        const response = await fetch(`${API_URL}/surat-jalan/${sjId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('prevSJNo').textContent = data.data.suratJalan.nosj;
+            document.getElementById('prevSJTgl').textContent = new Date(data.data.suratJalan.tglsj).toLocaleDateString('id-ID');
+            document.getElementById('prevSJPelanggan').textContent = data.data.suratJalan.so?.po?.pelanggan?.nmplg || '-';
+            document.getElementById('prevSJAlamat').textContent = data.data.suratJalan.alamatkirim;
+            
+            const itemsBody = document.getElementById('prevSJItems');
+            itemsBody.innerHTML = '';
+            
+            data.data.details.forEach((item, index) => {
+                itemsBody.innerHTML += `
+                    <tr>
+                        <td class="border border-gray-300 px-4 py-2 text-center">${index + 1}</td>
+                        <td class="border border-gray-300 px-4 py-2">${item.kdbrg?.nmbrg || '-'}</td>
+                        <td class="border border-gray-300 px-4 py-2 text-center">${item.qty}</td>
+                        <td class="border border-gray-300 px-4 py-2"></td>
+                    </tr>
+                `;
+            });
+            
+            const modal = document.getElementById('previewSuratJalanModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.style.display = 'flex';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Preview Kwitansi
+async function previewKwitansi(kwitId) {
+    try {
+        const response = await fetch(`${API_URL}/kwitansi/${kwitId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('prevKwitNo').textContent = data.data.nokwit;
+            document.getElementById('prevKwitTgl').textContent = new Date(data.data.tglkwit).toLocaleDateString('id-ID');
+            document.getElementById('prevKwitPelanggan').textContent = data.data.nota?.so?.po?.pelanggan?.nmplg || '-';
+            document.getElementById('prevKwitAlamat').textContent = data.data.nota?.so?.po?.pelanggan?.alamat || '-';
+            document.getElementById('prevKwitJumlah').textContent = formatRupiah(data.data.jumlahBayar);
+            document.getElementById('prevKwitTerbilang').textContent = terbilang(data.data.jumlahBayar) + ' Rupiah';
+            document.getElementById('prevKwitKeperluan').textContent = 'Nota ' + (data.data.nota?.nonota || '-');
+            document.getElementById('prevKwitMetode').textContent = data.data.metodeBayar.toUpperCase();
+            
+            const modal = document.getElementById('previewKwitansiModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.style.display = 'flex';
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// Update fungsi print
+function printSuratJalan(id) {
+    previewSuratJalan(id);
+}
+
+function printKwitansi(id) {
+    previewKwitansi(id);
+}
     </script>
 </body>
 </html>
